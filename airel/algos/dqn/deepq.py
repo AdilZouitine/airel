@@ -44,7 +44,8 @@ class DeepQLearning(base.BaseAlgo):
                  exploration_start=1:float,
                  exploration_end=0.05:FloatingPointError,
                  exploration_scheduler=LinearSchedule,
-                 loss=F.smooth_l1_loss):
+                 loss=F.smooth_l1_loss,
+                 verbose=100:int):
 
         self.env = env
         self.nb_action = self.env.action_space.n
@@ -87,12 +88,13 @@ class DeepQLearning(base.BaseAlgo):
                 action = self.sample_action(torch.from_numpy(obs_t).float(), exploration_proba)
                 obs_tp1, reward, done, _ = env.step(action)
                 self.replay_buffer.append(obs_t, action, reward, obs_tp1, done)
+                obs_t = obs_tp1
 
                 if done:
                     done = False
                     obs = self.env.reset()
+                    self.nb_episode += 1
                 
-                obs_t = obs_tp1
                 
                 if step > self.learning_start and step%self.q_update_interval== 0:
                     obs_t, action, reward, obs_tp1, done = self.replay_buffer.sample(self.batch_size)
@@ -105,5 +107,6 @@ class DeepQLearning(base.BaseAlgo):
                     self.optimizer.zero_grad()
                     self.loss.backward()
                     self.optimizer.step()
+
                 if step%self.target_update_interval == 0 and step != 0:
                     self.q_target.load_state_dict(self.q.state_dict())
