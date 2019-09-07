@@ -87,12 +87,12 @@ class DeepQLearning(base.BaseAlgo):
             return out.argmax().item()
 
     def _optimize(self):
-        obs_t, action, reward, obs_tp1, done = self.replay_buffer.sample(
+        obs_t, action, reward, obs_tp1, done_mask = self.replay_buffer.sample(
             self.batch_size)
         q_out = self.q(obs_t)
         q_a = q_out.gather(1, action)
         max_q_prime = self.q_target(obs_tp1).max(1)[0].unsqueeze(1)
-        target = reward + self.gamma * max_q_prime * done
+        target = reward + self.gamma * max_q_prime * done_mask
         loss = self.loss(q_a, target)
 
         self.optimizer.zero_grad()
@@ -105,22 +105,21 @@ class DeepQLearning(base.BaseAlgo):
 
         done = False
         obs_t = self.env.reset()
-
         for step in range(self.timesteps):
 
             exploration_proba = self.exploration_scheduler.get(step)
             action = self.sample_action(
                 torch.from_numpy(obs_t).float(), exploration_proba)
             obs_tp1, reward, done, _ = self.env.step(action)
+            done_mask = 0.0 if done else 1.0
             self.replay_buffer.append((obs_t, action, reward, obs_tp1,
-                                       float(done)))
+                                       done_mask))
             obs_t = obs_tp1
 
             if done:
                 done = False
                 obs = self.env.reset()
                 self.nb_episode += 1
-
             if step > self.learning_start and step % self.q_update_interval == 0:
                 for _ in range(self.nb_update):
                     self._optimize()
