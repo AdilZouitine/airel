@@ -20,7 +20,8 @@ class DeepQLearning(base.BaseAlgo):
         buffer_size (int): Size of replay buffer defaults to `1e5`.
         learning_rate (float): defaults to `2.5e-4`.
         optimizer (cls): Optimizer, defaults to `torch.optim.Adam`.
-        target_update_interval (int): Number of step before updating target network, defaults to `256`.
+        q_update_interval (int): Number of step before updating the q-network, defaults to `1`.
+        target_update_interval (int): Number of step before updating the target network, defaults to `256`.
         exploration_fraction (float): fraction of entire training period over which the exploration rate is annealed.
         exploration_start (float): start value of random action probability.
         exploration_end (float): final value of random action probability.
@@ -37,6 +38,7 @@ class DeepQLearning(base.BaseAlgo):
                  buffer_size=int(1e5):int, 
                  learning_rate=2.5e-4:float,
                  optimizer=torch.optim.Adam,
+                 q_update_interval=1:int,
                  target_update_interval=256:int,
                  exploration_fraction=0.9:float,
                  exploration_start=1:float,
@@ -50,6 +52,8 @@ class DeepQLearning(base.BaseAlgo):
         self.replay_buffer = ReplayBuffer(max_size=buffer_size)
         self.q_target = model.clone()
         self.timesteps = timesteps
+        self.q_update_interval = q_update_interval
+        self.target_update_interval = target_update_interval
         self.learning_start = learning_start,
         self.discount = discount
         self.batch_size = batch_size
@@ -101,3 +105,5 @@ class DeepQLearning(base.BaseAlgo):
                     self.optimizer.zero_grad()
                     self.loss.backward()
                     self.optimizer.step()
+                if step%self.target_update_interval == 0 and step != 0:
+                    self.q_target.load_state_dict(self.q.state_dict())
