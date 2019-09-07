@@ -9,7 +9,8 @@ class ReplayBuffer:
     """Stores transitions in a buffer
     
     Parameters:
-        max_size (int): maximum buffer size
+        max_size (int): maximum buffer size.When the buffer
+            overflows the old memories are dropped.
     
     Example:
     
@@ -32,11 +33,11 @@ class ReplayBuffer:
         A transition is observation at t, action at t, reward at t,
         observation at t+1 and if the episode is finished.
         
-        Arguments:
-            batch_size {int} -- [description]
+        Parameters:
+            batch_size (int): size of minibatch.
         
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor] -- [description]
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
         """
         batch = random.sample(self.buffer, batch_size)
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
