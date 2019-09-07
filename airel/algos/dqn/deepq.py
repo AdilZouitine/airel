@@ -3,6 +3,7 @@ import torch
 
 from .. import base
 from . import ReplayBuffer 
+from . import LinearSchedule
 
 class DeepQLearning(base.BaseAlgo):
     """[summary]
@@ -31,8 +32,9 @@ class DeepQLearning(base.BaseAlgo):
                  optimizer=torch.optim.Adam,
                  target_update_interval=256:int,
                  exploration_fraction=0.9:float,
-                 exploration_start=100:int,
-                 exploration_end=5:int):
+                 exploration_start=1:int,
+                 exploration_end=0.05:int,
+                 exploration_scheduler=LinearSchedule):
 
         self.env = env
         self.q = model

@@ -16,7 +16,20 @@ class LinearSchedule(object):
 
             ::
 
-                >>> #TODO
+                >>> from airel.algos.dqn import LinearSchedule
+                >>> exp = LinearSchedule(total_timesteps=10, exploration_fraction=0.5, final_p=0.2)
+                >>> for step in range(10):
+                >>>     print(f'{v.get(step):.2f}')
+                1.00
+                0.84
+                0.68
+                0.52
+                0.36
+                0.20
+                0.20
+                0.20
+                0.20
+                0.20
         """
         
         self.schedule_timesteps = int(exploration_fraction * total_timesteps)
