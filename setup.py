@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 # metadata
 NAME = 'airel'
 VERSION = '0.0.0'
-DESCRIPTION = 'Personal implementation of learning algorithms by reinforcement in Pytorch'
+DESCRIPTION = 'Personal implementation of reinforcement learning algorithms in Pytorch'
 URL = 'https://github.com/AdilZouitine/airel'
 AUTHOR = 'Adil Zouitine'
 AUTHOR_MAIL = 'adilzouitine@gmail.com'
