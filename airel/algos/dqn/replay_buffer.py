@@ -44,11 +44,10 @@ class ReplayBuffer:
         for transition in batch:
             obs_t, action, reward, obs_tp1, done = transition
             obses_t.append(obs_t)
-            actions.apprend([action])
+            actions.append([action])
             rewards.append([reward])
             obses_tp1.append(obs_tp1)
-            dones.append([dones])
-
+            dones.append([done])
         return torch.tensor(obses_t, dtype=torch.float), torch.tensor(actions), \
                torch.tensor(rewards), torch.tensor(obses_tp1, dtype=torch.float), \
                torch.tensor(dones)
