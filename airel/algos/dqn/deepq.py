@@ -94,7 +94,7 @@ class DeepQLearning(base.BaseAlgo):
                 
                 obs_t = obs_tp1
                 
-                if step > self.learning_start:
+                if step > self.learning_start and step%self.q_update_interval== 0:
                     obs_t, action, reward, obs_tp1, done = self.replay_buffer.sample(self.batch_size)
                     q_out = self.q(obs_t)
                     q_a = q_out.gather(1, action)
