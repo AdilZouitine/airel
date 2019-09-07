@@ -47,15 +47,17 @@ class DeepQLearning(base.BaseAlgo):
                  exploration_end: float = 0.05,
                  exploration_scheduler=LinearSchedule,
                  loss=F.smooth_l1_loss,
-                 verbose:int=100,
-                 seed:int=42):
+                 nb_update:int=1,
+                 clip_grad_norm: float = 10.,
+                 verbose: int = 100,
+                 seed: int = 42):
 
         random.seed(seed)
         self.env = env
         self.nb_action = self.env.action_space.n
         self.q = model
-        self.replay_buffer = ReplayBuffer(max_size=buffer_size)
         self.q_target = model
+        self.replay_buffer = ReplayBuffer(max_size=buffer_size)
         self.timesteps = timesteps
         self.q_update_interval = q_update_interval
         self.target_update_interval = target_update_interval
@@ -65,15 +67,17 @@ class DeepQLearning(base.BaseAlgo):
         self.learning_rate = learning_rate
         self.optimizer = optimizer(self.q.parameters(), lr=learning_rate)
         self.target_update_interval = target_update_interval
+        self.nb_update = nb_update
         self.exploration_scheduler = exploration_scheduler(
             total_timesteps=self.timesteps,
             exploration_fraction=exploration_fraction,
             final_p=exploration_end,
             initial_p=exploration_start)
         self.loss = loss
+        self.clip_grad_norm = clip_grad_norm
         self.verbose = verbose
         self.nb_episode = 0
-        self.list_loss = [] # TODO debug to delete
+
     def sample_action(self, obs: torch.tensor, exploration_proba: float):
         out = self.q(obs)
         coin = random.random()
@@ -84,49 +88,42 @@ class DeepQLearning(base.BaseAlgo):
 
     def _optimize(self):
         obs_t, action, reward, obs_tp1, done = self.replay_buffer.sample(
-        self.batch_size)
+            self.batch_size)
         q_out = self.q(obs_t)
         q_a = q_out.gather(1, action)
         max_q_prime = self.q_target(obs_tp1).max(1)[0].unsqueeze(1)
         target = reward + self.gamma * max_q_prime * done
         loss = self.loss(q_a, target)
-        self.list_loss.append(loss.item())
+
         self.optimizer.zero_grad()
         loss.backward()
+        grad_norm = torch.nn.utils.clip_grad_norm_(self.q.parameters(),
+                                                   self.clip_grad_norm)
         self.optimizer.step()
 
     def train(self):
 
         done = False
         obs_t = self.env.reset()
-        list_reward_episode = []
-        sum_reward_episode = 0
+
         for step in range(self.timesteps):
 
             exploration_proba = self.exploration_scheduler.get(step)
             action = self.sample_action(
                 torch.from_numpy(obs_t).float(), exploration_proba)
             obs_tp1, reward, done, _ = self.env.step(action)
-            # done = 0.0 if done else 1.0
-            sum_reward_episode += reward
-            self.replay_buffer.append((obs_t, action, reward, obs_tp1, float(done)))
+            self.replay_buffer.append((obs_t, action, reward, obs_tp1,
+                                       float(done)))
             obs_t = obs_tp1
 
             if done:
                 done = False
                 obs = self.env.reset()
                 self.nb_episode += 1
-                list_reward_episode.append(sum_reward_episode) # TODO debug to delete
-                if self.nb_episode % 30 ==0:
-                    print(np.mean(list_reward_episode[-30:])) # TODO debug to delete
-                    print(np.mean(self.list_loss[-30:])) # TODO debug to delete
-                    print('*'*10) # TODO debug to delete
-                sum_reward_episode = 0
 
             if step > self.learning_start and step % self.q_update_interval == 0:
-                self._optimize()
+                for _ in range(self.nb_update):
+                    self._optimize()
 
             if step % self.target_update_interval == 0 and step != 0:
                 self.q_target.load_state_dict(self.q.state_dict())
-
-                
