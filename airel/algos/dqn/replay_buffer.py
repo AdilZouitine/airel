@@ -15,6 +15,10 @@ class ReplayBuffer:
     Example:
     
         >>> #TODO tests
+
+    References:
+        1. `Playing Atari with Deep Reinforcement Learning <https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf>`_
+
     """
 
     def __init__(self, max_size: int):
