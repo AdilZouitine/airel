@@ -140,8 +140,8 @@ class DeepQLearning(base.BaseAlgo):
 
             exploration_proba = self.exploration_scheduler.get(step)
             action = self._sample_action(
-                obs=torch.from_numpy(obs_t).float(),
-                exploration_proba=exploration_proba)
+                                         obs=torch.from_numpy(obs_t).float(),
+                                         exploration_proba=exploration_proba)
 
             obs_tp1, reward, done, _ = self.env.step(action)
  
