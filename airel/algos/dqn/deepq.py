@@ -101,7 +101,7 @@ class DeepQLearning(base.BaseAlgo):
         self.verbose = verbose
         self.nb_episode = 0
 
-    def sample_action(self, obs: torch.tensor, exploration_proba: float):
+    def _sample_action(self, obs: torch.tensor, exploration_proba: float):
         '''
         With probability \epsilon select a random action a_{t} otherwise select
         a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
@@ -139,7 +139,7 @@ class DeepQLearning(base.BaseAlgo):
         for step in range(self.timesteps):
 
             exploration_proba = self.exploration_scheduler.get(step)
-            action = self.sample_action(
+            action = self._sample_action(
                 obs=torch.from_numpy(obs_t).float(),
                 exploration_proba=exploration_proba)
 
