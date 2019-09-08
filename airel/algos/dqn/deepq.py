@@ -141,7 +141,7 @@ class DeepQLearning(base.BaseAlgo):
 
         for step in range(self.timesteps):
 
-            # Select a random action
+            # Select action
             exploration_proba = self.exploration_scheduler.get(step)
             action = self._sample_action(
                 obs=torch.from_numpy(obs_t).float(),
