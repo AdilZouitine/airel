@@ -91,7 +91,8 @@ class DeepQLearning(base.BaseAlgo):
         self.gamma = gamma
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.optimizer = optimizer(self.q.parameters(), lr=self.learning_rate)
+        self.optimizer = optimizer(
+            params=self.q.parameters(), lr=self.learning_rate)
 
         # Loss part
         self.loss = loss
