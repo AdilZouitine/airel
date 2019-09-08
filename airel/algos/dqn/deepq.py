@@ -102,10 +102,9 @@ class DeepQLearning(base.BaseAlgo):
         self.nb_episode = 0
 
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
-        '''
-        With probability \epsilon select a random action a_{t} otherwise select
-        a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
-        '''
+
+        # With probability \epsilon select a random action a_{t} otherwise select
+        # a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
         out = self.q(obs)
         coin = random.random()
         if coin < exploration_proba:
@@ -114,6 +113,7 @@ class DeepQLearning(base.BaseAlgo):
             return out.argmax().item()
 
     def _optimize(self):
+
         # Sample random minibatch of transitions\left(\phi_{j}, a_{j}, r_{j}, \phi_{j+1}\right)  from  Replay buffer
         obs_t, action, reward, obs_tp1, done_mask = self.replay_buffer.sample(
             self.batch_size)
