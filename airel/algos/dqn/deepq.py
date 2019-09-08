@@ -42,8 +42,8 @@ class DeepQLearning(base.BaseAlgo):
     def __init__(self,
                  env,
                  model,
-                 timesteps: int,
-                 learning_start: int,
+                 timesteps: int = int(1e5),
+                 learning_start: int = int(1e3),
                  gamma: float = 0.99,
                  batch_size: int = 32,
                  buffer_size: int = int(1e5),
@@ -63,7 +63,7 @@ class DeepQLearning(base.BaseAlgo):
 
         # Random part
         random.seed(seed)
-        
+
         # Environment part
         self.env = env
         self.nb_action = self.env.action_space.n
@@ -79,7 +79,7 @@ class DeepQLearning(base.BaseAlgo):
             exploration_fraction=exploration_fraction,
             final_p=exploration_end,
             initial_p=exploration_start)
-        
+
         # number of training iteration/update
         self.timesteps = timesteps
         self.q_update_interval = q_update_interval
@@ -133,31 +133,42 @@ class DeepQLearning(base.BaseAlgo):
         self.optimizer.step()
 
     def train(self):
+
+        # Initialise episode
         done = False
         obs_t = self.env.reset()
 
         for step in range(self.timesteps):
 
+            # Select a random action
             exploration_proba = self.exploration_scheduler.get(step)
             action = self._sample_action(
-                                         obs=torch.from_numpy(obs_t).float(),
-                                         exploration_proba=exploration_proba)
+                obs=torch.from_numpy(obs_t).float(),
+                exploration_proba=exploration_proba)
 
+            # Execute action in environment
             obs_tp1, reward, done, _ = self.env.step(action)
- 
+
             done_mask = 0.0 if done else 1.0
-            self.replay_buffer.append((obs_t, action, reward, obs_tp1,
-                                       done_mask))
+
+            # Store transition
+            self.replay_buffer.store(
+                transition=(obs_t, action, reward, obs_tp1, done_mask))
+
+            # Update the current state
             obs_t = obs_tp1
 
+            # Restart an another episode
             if done:
                 done = False
                 obs_t = self.env.reset()
                 self.nb_episode += 1
 
+            # Perform a gradient descent step
             if step > self.learning_start and step % self.q_update_interval == 0:
                 for _ in range(self.nb_update):
                     self._optimize()
 
+            # Update the Q-target network
             if step % self.target_update_interval == 0 and step != 0:
                 self.q_target.load_state_dict(self.q.state_dict())

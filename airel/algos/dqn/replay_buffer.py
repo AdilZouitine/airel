@@ -27,7 +27,7 @@ class ReplayBuffer:
     def __len__(self) -> int:
         return len(self.buffer)
 
-    def append(self, transition: Tuple) -> NoReturn:
+    def store(self, transition: Tuple) -> NoReturn:
         self.buffer.append(transition)
 
     def sample(
