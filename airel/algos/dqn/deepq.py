@@ -11,7 +11,7 @@ from . import LinearSchedule
 
 
 class DeepQLearning(base.BaseAlgo):
-    """[summary]
+    """Implementation of the double Q-learning .
     
     Parameters:
         env: Gym environement.
@@ -28,6 +28,10 @@ class DeepQLearning(base.BaseAlgo):
         exploration_start (float): start value of random action probability.
         exploration_end (float): final value of random action probability.
         exploration_scheduler: exploration scheduler.
+        loss: Loss function. Defaults to `smooth_l1_loss`.
+        nb_update (int): Number of weight updates during an optimization phase. Defaults to `1`.
+        clip_grad_norm (float): Clip the gradient of Q-network, defaults to `10`.
+        seed (int): Fix the random seed/
     """
 
     def __init__(self,
@@ -47,7 +51,7 @@ class DeepQLearning(base.BaseAlgo):
                  exploration_end: float = 0.05,
                  exploration_scheduler=LinearSchedule,
                  loss=F.smooth_l1_loss,
-                 nb_update:int=1,
+                 nb_update: int = 1,
                  clip_grad_norm: float = 10.,
                  verbose: int = 100,
                  seed: int = 42):
@@ -112,7 +116,7 @@ class DeepQLearning(base.BaseAlgo):
             action = self.sample_action(
                 torch.from_numpy(obs_t).float(), exploration_proba)
             obs_tp1, reward, done, _ = self.env.step(action)
-            
+
             done_mask = 0.0 if done else 1.0
             self.replay_buffer.append((obs_t, action, reward, obs_tp1,
                                        done_mask))
