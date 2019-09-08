@@ -158,12 +158,6 @@ class DeepQLearning(base.BaseAlgo):
             # Update the current state
             obs_t = obs_tp1
 
-            # Restart an another episode
-            if done:
-                done = False
-                obs_t = self.env.reset()
-                self.nb_episode += 1
-
             # Perform a gradient descent step
             if step > self.learning_start and step % self.q_update_interval == 0:
                 for _ in range(self.nb_update):
@@ -172,3 +166,9 @@ class DeepQLearning(base.BaseAlgo):
             # Update the Q-target network
             if step % self.target_update_interval == 0 and step != 0:
                 self.q_target.load_state_dict(self.q.state_dict())
+
+            # Restart an another episode
+            if done:
+                done = False
+                obs_t = self.env.reset()
+                self.nb_episode += 1
