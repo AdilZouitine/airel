@@ -30,6 +30,7 @@ class LinearSchedule(object):
                 0.20
                 0.20
                 0.20
+
         """
         
         self.schedule_timesteps = int(exploration_fraction * total_timesteps)
