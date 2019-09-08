@@ -34,7 +34,9 @@ class DeepQLearning(base.BaseAlgo):
         seed (int): Fix the random seed.
     
     References:
-    
+        1. `Playing Atari with Deep Reinforcement Learning <https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf>`_
+        2. `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/pdf/1509.06461.pdf>`_
+
     """
 
     def __init__(self,
