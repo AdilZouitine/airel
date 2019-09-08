@@ -129,8 +129,8 @@ class DeepQLearning(base.BaseAlgo):
         loss = self.loss(q_a, target)
         self.optimizer.zero_grad()
         loss.backward()
-        grad_norm = torch.nn.utils.clip_grad_norm_(self.q.parameters(),
-                                                   self.clip_grad_norm)
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            parameters=self.q.parameters(), clip_value=self.clip_grad_norm)
         self.optimizer.step()
 
     def train(self):
