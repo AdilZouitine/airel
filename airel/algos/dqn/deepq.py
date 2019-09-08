@@ -155,7 +155,7 @@ class DeepQLearning(base.BaseAlgo):
             self.replay_buffer.store(
                 transition=(obs_t, action, reward, obs_tp1, done_mask))
 
-            # Update the current state
+            # Update the current observation
             obs_t = obs_tp1
 
             # Perform a gradient descent step
