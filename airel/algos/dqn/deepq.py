@@ -31,7 +31,7 @@ class DeepQLearning(base.BaseAlgo):
         loss: Loss function. Defaults to `smooth_l1_loss`.
         nb_update (int): Number of weight updates during an optimization phase. Defaults to `1`.
         clip_grad_norm (float): Clip the gradient of Q-network, defaults to `10`.
-        seed (int): Fix the random seed/
+        seed (int): Fix the random seed.
     """
 
     def __init__(self,
@@ -83,6 +83,10 @@ class DeepQLearning(base.BaseAlgo):
         self.nb_episode = 0
 
     def sample_action(self, obs: torch.tensor, exploration_proba: float):
+        '''
+        With probability \epsilon select a random action a_{t} otherwise select
+        a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
+        '''
         out = self.q(obs)
         coin = random.random()
         if coin < exploration_proba:
@@ -91,14 +95,18 @@ class DeepQLearning(base.BaseAlgo):
             return out.argmax().item()
 
     def _optimize(self):
+        # Sample random minibatch of transitions\left(\phi_{j}, a_{j}, r_{j}, \phi_{j+1}\right)  from  Replay buffer
         obs_t, action, reward, obs_tp1, done_mask = self.replay_buffer.sample(
             self.batch_size)
+
+        # r_{j}+\gamma \max _{a^{\prime}} Q^{\prime}\left(\phi_{j+1}, a^{\prime} ; \theta\right)
         q_out = self.q(obs_t)
         q_a = q_out.gather(1, action)
         max_q_prime = self.q_target(obs_tp1).max(1)[0].unsqueeze(1)
         target = reward + self.gamma * max_q_prime * done_mask
-        loss = self.loss(q_a, target)
 
+        # Perform a gradient descent step on Loss(\left(y_{j}-Q\left(\phi_{j}, a_{j} ; \theta\right)\right))
+        loss = self.loss(q_a, target)
         self.optimizer.zero_grad()
         loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(self.q.parameters(),
@@ -124,7 +132,7 @@ class DeepQLearning(base.BaseAlgo):
 
             if done:
                 done = False
-                obs = self.env.reset()
+                obs_t = self.env.reset()
                 self.nb_episode += 1
 
             if step > self.learning_start and step % self.q_update_interval == 0:
