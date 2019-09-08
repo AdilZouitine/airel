@@ -17,7 +17,7 @@ class DeepQLearning(base.BaseAlgo):
         env: Gym environement.
         model: Pytorch model.
         timesteps: Number of step while training.
-        gamma (float): discount factor of $G_{t}=\sum_{k=t+1}^{T} \gamma^{k-t-1} R_{k}$, defaults `0.99`.
+        gamma (float): discount factor of G_{t}=\sum_{k=t+1}^{T} \gamma^{k-t-1} R_{k}, defaults `0.99`.
         batch_size (int): Size of minibatch, defaults to `32`.
         buffer_size (int): Size of replay buffer defaults to `1e5`.
         learning_rate (float): defaults to `2.5e-4`.
@@ -32,6 +32,9 @@ class DeepQLearning(base.BaseAlgo):
         nb_update (int): Number of weight updates during an optimization phase. Defaults to `1`.
         clip_grad_norm (float): Clip the gradient of Q-network, defaults to `10`.
         seed (int): Fix the random seed.
+    
+    References:
+    
     """
 
     def __init__(self,
@@ -56,29 +59,43 @@ class DeepQLearning(base.BaseAlgo):
                  verbose: int = 100,
                  seed: int = 42):
 
+        # Random part
         random.seed(seed)
+        
+        # Environment part
         self.env = env
         self.nb_action = self.env.action_space.n
+
+        # Model part
         self.q = model
         self.q_target = model
+
+        # Replay buffer and exploration
         self.replay_buffer = ReplayBuffer(max_size=buffer_size)
+        self.exploration_scheduler = exploration_scheduler(
+            total_timesteps=timesteps,
+            exploration_fraction=exploration_fraction,
+            final_p=exploration_end,
+            initial_p=exploration_start)
+        
+        # number of training iteration/update
         self.timesteps = timesteps
         self.q_update_interval = q_update_interval
         self.target_update_interval = target_update_interval
         self.learning_start = learning_start
+        self.nb_update = nb_update
+
+        # Hyperparams
         self.gamma = gamma
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.optimizer = optimizer(self.q.parameters(), lr=learning_rate)
-        self.target_update_interval = target_update_interval
-        self.nb_update = nb_update
-        self.exploration_scheduler = exploration_scheduler(
-            total_timesteps=self.timesteps,
-            exploration_fraction=exploration_fraction,
-            final_p=exploration_end,
-            initial_p=exploration_start)
+        self.optimizer = optimizer(self.q.parameters(), lr=self.learning_rate)
+
+        # Loss part
         self.loss = loss
         self.clip_grad_norm = clip_grad_norm
+
+        # Logging part
         self.verbose = verbose
         self.nb_episode = 0
 
@@ -114,7 +131,6 @@ class DeepQLearning(base.BaseAlgo):
         self.optimizer.step()
 
     def train(self):
-
         done = False
         obs_t = self.env.reset()
 
@@ -122,9 +138,11 @@ class DeepQLearning(base.BaseAlgo):
 
             exploration_proba = self.exploration_scheduler.get(step)
             action = self.sample_action(
-                torch.from_numpy(obs_t).float(), exploration_proba)
-            obs_tp1, reward, done, _ = self.env.step(action)
+                obs=torch.from_numpy(obs_t).float(),
+                exploration_proba=exploration_proba)
 
+            obs_tp1, reward, done, _ = self.env.step(action)
+ 
             done_mask = 0.0 if done else 1.0
             self.replay_buffer.append((obs_t, action, reward, obs_tp1,
                                        done_mask))
