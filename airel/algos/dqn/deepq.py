@@ -59,7 +59,7 @@ class DeepQLearning(base.BaseAlgo):
                  exploration_scheduler=LinearSchedule,
                  loss=F.smooth_l1_loss,
                  nb_update: int = 1,
-                 clip_grad_norm: float = 10.,
+                 clip_grad_value: float = 10.,
                  verbose: int = 100,
                  seed: int = 42,
                  device: str = "cpu"):
@@ -81,7 +81,8 @@ class DeepQLearning(base.BaseAlgo):
         self.q_target = self.q_target.to(self.device)
 
         # Replay buffer and exploration
-        self.replay_buffer = ReplayBuffer(max_size=buffer_size, device=self.device)
+        self.replay_buffer = ReplayBuffer(
+            max_size=buffer_size, device=self.device)
         self.exploration_scheduler = exploration_scheduler(
             total_timesteps=timesteps,
             exploration_fraction=exploration_fraction,
@@ -112,7 +113,6 @@ class DeepQLearning(base.BaseAlgo):
         self.sum_ep_reward = 0
         self.reward_100_ep = collections.deque(maxlen=100)
 
-
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
 
         # With probability \epsilon select a random action a_{t} otherwise select
@@ -140,8 +140,8 @@ class DeepQLearning(base.BaseAlgo):
         loss = self.loss(q_a, target).to(self.device)
         self.optimizer.zero_grad()
         loss.backward()
-        grad_norm = torch.nn.utils.clip_grad_norm_(
-            parameters=self.q.parameters(), clip_value=self.clip_grad_norm)
+        torch.nn.utils.clip_grad_value_(
+            parameters=self.q.parameters(), clip_value=self.clip_grad_value)
         self.optimizer.step()
 
     def train(self):
@@ -186,10 +186,14 @@ class DeepQLearning(base.BaseAlgo):
 
                 done = False
                 obs_t = self.env.reset()
-                
+
                 self.reward_100_ep.append(self.sum_ep_reward)
                 self.sum_ep_reward = 0
                 self.nb_episode += 1
 
                 if self.nb_episode % self.verbose == 0 and self.nb_episode != 0:
-                    print(f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}')
+                    print(f'EPISODE {self.nb_episode}')
+                    print(
+                        f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}'
+                    )
+                    print('-' * 10)
