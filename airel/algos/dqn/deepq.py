@@ -14,7 +14,7 @@ from . import LinearSchedule
 
 class DeepQLearning(base.BaseAlgo):
     """Implementation of the double Q-learning .
-    
+
     Parameters:
         env: Gym environement.
         model: Pytorch model.
