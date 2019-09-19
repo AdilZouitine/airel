@@ -192,7 +192,8 @@ class DeepQLearning(base.BaseAlgo):
 
                 # Verbose part
                 if self.nb_episode % self.verbose == 0 and self.nb_episode != 0:
-                    print(f'EPISODE {self.nb_episode}')
+                    print(f'Episode :{self.nb_episode}')
+                    print(f'Timestep number : {step}')
                     print(
                         f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}'
                     )
