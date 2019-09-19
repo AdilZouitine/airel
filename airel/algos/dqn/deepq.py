@@ -59,7 +59,8 @@ class DeepQLearning(base.BaseAlgo):
                  nb_update: int = 1,
                  clip_grad_norm: float = 10.,
                  verbose: int = 100,
-                 seed: int = 42):
+                 seed: int = 42,
+                 device: str = "cpu"):
 
         # Random part
         random.seed(seed)
@@ -72,8 +73,13 @@ class DeepQLearning(base.BaseAlgo):
         self.q = model
         self.q_target = model
 
+        # Device part
+        self.device = device
+        self.q = self.q.to(self.device)
+        self.q_target = self.q_target.to(self.device)
+
         # Replay buffer and exploration
-        self.replay_buffer = ReplayBuffer(max_size=buffer_size)
+        self.replay_buffer = ReplayBuffer(max_size=buffer_size, device=self.device)
         self.exploration_scheduler = exploration_scheduler(
             total_timesteps=timesteps,
             exploration_fraction=exploration_fraction,
@@ -102,6 +108,7 @@ class DeepQLearning(base.BaseAlgo):
         self.verbose = verbose
         self.nb_episode = 0
 
+
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
 
         # With probability \epsilon select a random action a_{t} otherwise select
@@ -126,7 +133,7 @@ class DeepQLearning(base.BaseAlgo):
         target = reward + self.gamma * max_q_prime * done_mask
 
         # Perform a gradient descent step on Loss(\left(y_{j}-Q\left(\phi_{j}, a_{j} ; \theta\right)\right))
-        loss = self.loss(q_a, target)
+        loss = self.loss(q_a, target).to(self.device)
         self.optimizer.zero_grad()
         loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(
