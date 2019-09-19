@@ -34,6 +34,7 @@ class DeepQLearning(base.BaseAlgo):
         nb_update (int): Number of weight updates during an optimization phase. Defaults to `1`.
         clip_grad_norm (float): Clip the gradient of Q-network, defaults to `10`.
         seed (int): Fix the random seed.
+        device (str):  where the data will be sent. Defaults to `cpu`.
     
     References:
         1. `Playing Atari with Deep Reinforcement Learning <https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf>`_
@@ -195,5 +196,8 @@ class DeepQLearning(base.BaseAlgo):
                     print(f'EPISODE {self.nb_episode}')
                     print(
                         f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}'
+                    )
+                    print(
+                        f'Probability of selecting a random action : {exploration_proba * 100} %'
                     )
                     print('-' * 10)
