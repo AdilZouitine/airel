@@ -1,6 +1,5 @@
 # TODO
 
-- gpu support 
 - logging
 - Priotized replay buffer
 - multi-step learning
