@@ -115,7 +115,6 @@ class DeepQLearning(base.BaseAlgo):
         self.reward_100_ep = collections.deque(maxlen=100)
 
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
-
         # With probability \epsilon select a random action a_{t} otherwise select
         # a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
         out = self.q(obs)
@@ -123,7 +122,7 @@ class DeepQLearning(base.BaseAlgo):
         if coin < exploration_proba:
             return random.randint(0, self.nb_action - 1)
         else:
-            return out.argmax().item()
+            return out.argmax().item().cpu()
 
     def _optimize(self):
 
@@ -138,7 +137,7 @@ class DeepQLearning(base.BaseAlgo):
         target = reward + self.gamma * max_q_prime * done_mask
 
         # Perform a gradient descent step on Loss(\left(y_{j}-Q\left(\phi_{j}, a_{j} ; \theta\right)\right))
-        loss = self.loss(q_a, target).to(self.device)
+        loss = self.loss(q_a, target).to(self.device).to(self.device)
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_value_(
@@ -156,7 +155,7 @@ class DeepQLearning(base.BaseAlgo):
             # Select action
             exploration_proba = self.exploration_scheduler.get(step)
             action = self._sample_action(
-                obs=torch.from_numpy(obs_t).float(),
+                obs=torch.from_numpy(obs_t).float().to(self.device),
                 exploration_proba=exploration_proba)
 
             # Execute action in environment
