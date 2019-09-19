@@ -105,7 +105,7 @@ class DeepQLearning(base.BaseAlgo):
 
         # Loss part
         self.loss = loss
-        self.clip_grad_norm = clip_grad_norm
+        self.clip_grad_value = clip_grad_value
 
         # Logging part
         self.verbose = verbose
@@ -183,14 +183,14 @@ class DeepQLearning(base.BaseAlgo):
 
             # Restart an another episode
             if done:
-
                 done = False
                 obs_t = self.env.reset()
-
+                # Reset and update stat
                 self.reward_100_ep.append(self.sum_ep_reward)
                 self.sum_ep_reward = 0
                 self.nb_episode += 1
 
+                # Verbose part
                 if self.nb_episode % self.verbose == 0 and self.nb_episode != 0:
                     print(f'EPISODE {self.nb_episode}')
                     print(
