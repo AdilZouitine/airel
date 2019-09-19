@@ -11,6 +11,7 @@ class ReplayBuffer:
     Parameters:
         max_size (int): maximum buffer size.When the buffer
             overflows the old memories are dropped.
+        device (str): where the data will be sent. Defaults to `cpu`.
     
     Example:
     
@@ -21,8 +22,10 @@ class ReplayBuffer:
 
     """
 
-    def __init__(self, max_size: int):
+    def __init__(self, max_size: int, device: str = "cpu"):
+
         self.buffer = collections.deque(maxlen=max_size)
+        self.device = device
 
     def __len__(self) -> int:
         return len(self.buffer)
@@ -52,6 +55,10 @@ class ReplayBuffer:
             rewards.append([reward])
             obses_tp1.append(obs_tp1)
             dones.append([done_mask])
-        return torch.tensor(obses_t, dtype=torch.float), torch.tensor(actions), \
-               torch.tensor(rewards), torch.tensor(obses_tp1, dtype=torch.float), \
-               torch.tensor(dones)
+        return torch.tensor(
+            obses_t,
+            dtype=torch.float).to(self.device), torch.tensor(actions).to(
+                self.device), torch.tensor(rewards).to(
+                    self.device), torch.tensor(
+                        obses_tp1, dtype=torch.float).to(
+                            self.device), torch.tensor(dones).to(self.device)
