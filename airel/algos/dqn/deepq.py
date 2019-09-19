@@ -1,4 +1,6 @@
 import random
+import collections
+import statistics
 
 import numpy as np
 import gym
@@ -107,6 +109,8 @@ class DeepQLearning(base.BaseAlgo):
         # Logging part
         self.verbose = verbose
         self.nb_episode = 0
+        self.sum_ep_reward = 0
+        self.reward_100_ep = collections.deque(maxlen=100)
 
 
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
@@ -157,6 +161,8 @@ class DeepQLearning(base.BaseAlgo):
             # Execute action in environment
             obs_tp1, reward, done, _ = self.env.step(action)
 
+            self.sum_ep_reward += reward
+
             done_mask = 0.0 if done else 1.0
 
             # Store transition
@@ -177,6 +183,13 @@ class DeepQLearning(base.BaseAlgo):
 
             # Restart an another episode
             if done:
+
                 done = False
                 obs_t = self.env.reset()
+                
+                self.reward_100_ep.append(self.sum_ep_reward)
+                self.sum_ep_reward = 0
                 self.nb_episode += 1
+
+                if self.nb_episode % self.verbose == 0 and self.nb_episode != 0:
+                    print(f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}')
