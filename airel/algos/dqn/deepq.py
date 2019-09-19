@@ -122,7 +122,7 @@ class DeepQLearning(base.BaseAlgo):
         if coin < exploration_proba:
             return random.randint(0, self.nb_action - 1)
         else:
-            return out.argmax().item().cpu()
+            return out.argmax().item()
 
     def _optimize(self):
 
