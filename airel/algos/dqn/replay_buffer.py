@@ -55,10 +55,8 @@ class ReplayBuffer:
             rewards.append([reward])
             obses_tp1.append(obs_tp1)
             dones.append([done_mask])
-        return torch.tensor(
-            obses_t,
-            dtype=torch.float).to(self.device), torch.tensor(actions).to(
-                self.device), torch.tensor(rewards).to(
-                    self.device), torch.tensor(
-                        obses_tp1, dtype=torch.float).to(
-                            self.device), torch.tensor(dones).to(self.device)
+        return torch.tensor(obses_t, dtype=torch.float, device=self.device), \
+               torch.tensor(actions, device=self.device), \
+               torch.tensor(rewards, device=self.device), \
+               torch.tensor(obses_tp1, dtype=torch.float, device=self.device), \
+               torch.tensor(dones, device=self.device)
