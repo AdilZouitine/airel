@@ -67,6 +67,7 @@ class DeepQLearning(base.BaseAlgo):
 
         # Random part
         random.seed(seed)
+        torch.manual_seed(seed)
 
         # Environment part
         self.env = env
@@ -117,7 +118,9 @@ class DeepQLearning(base.BaseAlgo):
     def _sample_action(self, obs: torch.tensor, exploration_proba: float):
         # With probability \epsilon select a random action a_{t} otherwise select
         # a_{t}=\max _{a} Q^{*}\left(\phi\left(s_{t}\right), a ; \theta\right)
-        out = self.q(obs)
+        with torch.no_grad():
+            out = self.q(obs)
+
         coin = random.random()
         if coin < exploration_proba:
             return random.randint(0, self.nb_action - 1)
@@ -143,6 +146,17 @@ class DeepQLearning(base.BaseAlgo):
         torch.nn.utils.clip_grad_value_(
             parameters=self.q.parameters(), clip_value=self.clip_grad_value)
         self.optimizer.step()
+    
+    def _verbose_episode(self, step: int, exploration_proba: float):
+        print(f'Episode :{self.nb_episode}')
+        print(f'Timestep number : {step}')
+        print(
+            f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}'
+        )
+        print(
+            f'Probability of selecting a random action : {exploration_proba * 100} %'
+        )
+        print('-' * 10)
 
     def train(self):
 
@@ -192,12 +206,4 @@ class DeepQLearning(base.BaseAlgo):
 
                 # Verbose part
                 if self.nb_episode % self.verbose == 0 and self.nb_episode != 0:
-                    print(f'Episode :{self.nb_episode}')
-                    print(f'Timestep number : {step}')
-                    print(
-                        f'Sum of the rewards from the last 100 episodes : {statistics.mean(self.reward_100_ep)}'
-                    )
-                    print(
-                        f'Probability of selecting a random action : {exploration_proba * 100} %'
-                    )
-                    print('-' * 10)
+                    self._verbose_episode()
