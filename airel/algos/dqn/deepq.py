@@ -140,7 +140,7 @@ class DeepQLearning(base.BaseAlgo):
         target = reward + self.gamma * max_q_prime * done_mask
 
         # Perform a gradient descent step on Loss(\left(y_{j}-Q\left(\phi_{j}, a_{j} ; \theta\right)\right))
-        loss = self.loss(q_a, target).to(self.device).to(self.device)
+        loss = self.loss(q_a, target).to(self.device)
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_value_(
